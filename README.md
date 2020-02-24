@@ -45,3 +45,8 @@ respective wrapper structs.
 ## Examples
 
 For examples of use, please consult the files in the `example/` directory.
+
+## Contributions
+
+All contributions are welcome, as this was starting for personnal use without
+enough knowledge about both Zig and GLFW3.
