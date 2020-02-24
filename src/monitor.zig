@@ -19,20 +19,21 @@ pub const Monitor = struct {
     /// returned slice.
     ///
     /// The caller is responsible for freeing the returned slice.
-    pub fn all(allocator: *mem.Allocator) ![]Monitor {
+    pub fn all() ![]Monitor {
         var count: i32 = 0;
-        var handles = C.glfwGetMonitors(&count);
+        var handles = c.glfwGetMonitors(&count);
 
         glfw.getError() catch |err| switch (err) {
             glfw.Error.NotInitialized => return err,
             else => unreachable,
         };
 
-        var monitors = try allocator.alloc(Monitor, count);
-        errdefer allocator.free(monitors);
+        var monitors = try std.heap.c_allocator.alloc(Monitor, @intCast(usize, count));
+        errdefer std.heap.c_allocator.free(monitors);
 
-        while (count >= 0) : (count -= 1) {
-            monitors[count] = .{ .handle = handles[count] };
+        var i: usize = 0;
+        while (i < count) : (i += 1) {
+            monitors[i] = .{ .handle = handles[i].? };
         }
 
         return monitors;
@@ -42,7 +43,7 @@ pub const Monitor = struct {
     /// monitor where elements like the task bar or global menu bar
     /// are located.
     pub fn primary() !?Monitor {
-        var maybeHandle = C.glfwGetPrimaryMonitor();
+        var maybeHandle = c.glfwGetPrimaryMonitor();
 
         glfw.getError() catch |err| switch (err) {
             glfw.Error.NotInitialized => return err,
@@ -50,7 +51,7 @@ pub const Monitor = struct {
         };
 
         if (maybeHandle) |handle| {
-            return .{ .handle = handle, };
+            return Monitor{ .handle = handle, };
         } else {
             return null;
         }
@@ -173,7 +174,7 @@ pub const Monitor = struct {
             else => unreachable,
         };
 
-        return mem.toSliceConst(name);
+        return mem.toSliceConst(u8, name);
     }
 
     /// This function sets the user-defined pointer of the specified
@@ -211,7 +212,7 @@ pub const Monitor = struct {
     /// specified monitor. The returned array is sorted in ascending order,
     /// first by color bit depth (the sum of all channel depths) and then by
     /// resolution area (the product of width and height).
-    pub fn getVideoModes(self: Self) ![]VideoMode {
+    pub fn getVideoModes(self: Self) ![]*const VideoMode {
         var count: i32 = 0;
         var handles = c.glfwGetVideoModes(self.handle, &count);
 
@@ -227,7 +228,7 @@ pub const Monitor = struct {
     /// This function returns the current video mode of the specified monitor.
     /// If you have created a full screen window for that monitor, the return
     /// value will depend on whether that window is iconified.
-    pub fn getVideoMode(self: Self) !VideoMode {
+    pub fn getVideoMode(self: Self) !*const VideoMode {
         var videoMode = c.glfwGetVideoMode(self.handle);
 
         glfw.getError() catch |err| switch (err) {
@@ -271,11 +272,11 @@ pub const Monitor = struct {
             else => unreachable,
         };
 
-        return .{
-            .red = gammaRamp.red[0..gammaRamp.size],
-            .green = gammaRamp.green[0..gammaRamp.size],
-            .blue = gammaRamp.blue[0..gammaRamp.size],
-            .size = gammaRamp.size,
+        return GammaRamp{
+            .red = gammaRamp.*.red[0..gammaRamp.*.size],
+            .green = gammaRamp.*.green[0..gammaRamp.*.size],
+            .blue = gammaRamp.*.blue[0..gammaRamp.*.size],
+            .size = gammaRamp.*.size,
         };
     }
 
@@ -290,16 +291,16 @@ pub const Monitor = struct {
     ///
     /// For gamma correct rendering with OpenGL or OpenGL ES, see the
     /// `SRGBCapable` hint.
-    pub fn setGammaRamp(self: *Self, gammaRamp: *GammaRamp) !void {
+    pub fn setGammaRamp(self: *Self, gammaRamp: GammaRamp) !void {
         if (gammaRamp.red.len != gammaRamp.size or gammaRamp.green.len != gammaRamp.size or gammaRamp.blue.len != gammaRamp.size) {
-            return Error.InvalidValue;
+            return glfw.Error.InvalidValue;
         }
 
         var raw = c.GLFWgammaramp{
             .red = gammaRamp.red.ptr,
             .green = gammaRamp.green.ptr,
             .blue = gammaRamp.blue.ptr,
-            .size = gammaRamp.size,
+            .size = @intCast(c_uint, gammaRamp.size),
         };
 
         c.glfwSetGammaRamp(self.handle, &raw);
@@ -311,4 +312,3 @@ pub const Monitor = struct {
         };
     }
 };
-        

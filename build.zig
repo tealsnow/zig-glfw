@@ -16,6 +16,7 @@ pub fn build(b: *Builder) void {
     build_example(b, "initialization");
     build_example(b, "error");
     build_example(b, "window");
+    build_example(b, "monitor");
 }
 
 fn build_example(b: *Builder, comptime name: [:0] const u8) void {

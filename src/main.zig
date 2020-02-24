@@ -8,13 +8,13 @@ pub usingnamespace @import("./monitor.zig");
 pub usingnamespace @import("./window.zig");
 
 /// Video mode type.
-pub const VideoMode = C.GLFWvidmode;
+pub const VideoMode = c.GLFWvidmode;
 
 /// Gamma ramp type.
 pub const GammaRamp = struct {
-    red: []const c_ushort,
-    green: []const c_ushort,
-    blue: []const c_ushort,
+    red: []c_ushort,
+    green: []c_ushort,
+    blue: []c_ushort,
     size: usize,
 };
 
@@ -179,9 +179,11 @@ fn toGLFWBool(value: bool) i32 {
 /// library and want to ensure that you are using the minimum required
 /// version.
 pub fn getVersion() builtin.Version {
-    var version: builtin.Version = undefined;
-    c.glfwGetVersion(&version.major, &version.minor, &version.patch);
-    return version;
+    var major: i32 = 0;
+    var minor: i32 = 0;
+    var patch: i32 = 0;
+    c.glfwGetVersion(&major, &minor, &patch);
+    return builtin.Version{ .major = @intCast(u32, major), .minor = @intCast(u32, minor), .patch = @intCast(u32, patch) };
 }
 
 /// This function returns the compile-time generated version string of
@@ -195,7 +197,7 @@ pub fn getVersion() builtin.Version {
 /// binary in numerical format.
 pub fn getVersionString() [:0]const u8 {
     const string = c.glfwGetVersionString();
-    return mem.toSliceConst(string);
+    return mem.toSliceConst(u8, string);
 }
 
 /// This is the function pointer type for error callbacks. An error
