@@ -9,7 +9,7 @@ const VideoMode = glfw.VideoMode;
 const GammaRamp = glfw.GammaRamp;
 
 /// Opaque monitor object.
-pub const Monitor = struct {
+pub const Monitor = packed struct {
     const Self = @This();
 
     handle: *c.GLFWmonitor,
@@ -17,8 +17,6 @@ pub const Monitor = struct {
     /// This function returns a slice of `Monitor` for all currently
     /// connected monitors. The primary monitor is always first in the
     /// returned slice.
-    ///
-    /// The caller is responsible for freeing the returned slice.
     pub fn all() ![]Monitor {
         var count: i32 = 0;
         var handles = c.glfwGetMonitors(&count);
@@ -28,15 +26,7 @@ pub const Monitor = struct {
             else => unreachable,
         };
 
-        var monitors = try std.heap.c_allocator.alloc(Monitor, @intCast(usize, count));
-        errdefer std.heap.c_allocator.free(monitors);
-
-        var i: usize = 0;
-        while (i < count) : (i += 1) {
-            monitors[i] = .{ .handle = handles[i].? };
-        }
-
-        return monitors;
+        return @ptrCast([*]Self, handles)[0..@intCast(usize, count)];
     }
 
     /// This function returns the primary monitor. This is usually the
@@ -174,7 +164,7 @@ pub const Monitor = struct {
             else => unreachable,
         };
 
-        return mem.toSliceConst(u8, name);
+        return mem.spanZ(@as([*:0]const u8, name));
     }
 
     /// This function sets the user-defined pointer of the specified

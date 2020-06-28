@@ -2,6 +2,8 @@ const std = @import("std");
 
 const glfw = @import("glfw");
 
+var icon_pixels = [_]u8{ 0xFF, 0xFF, 0xFF, 0xFF };
+
 pub fn main() anyerror!void {
     try glfw.init();
     defer glfw.deinit();
@@ -15,7 +17,7 @@ pub fn main() anyerror!void {
     var icon: glfw.Image = undefined;
     icon.width = 1;
     icon.height = 1;
-    icon.pixels = &[_]u8{ 0xFF, 0xFF, 0xFF, 0xFF };
+    icon.pixels = &icon_pixels;
 
     try window.setIcon(icon);
 
@@ -46,4 +48,9 @@ pub fn main() anyerror!void {
 
     var frameSize = try window.getFrameSize();
     std.debug.warn("window.getFrameSize() == {}\n", .{ frameSize });
+
+    while (!try window.shouldClose()) {
+        try glfw.pollEvents();
+        try window.swapBuffers();
+    }
 }

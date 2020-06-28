@@ -197,7 +197,7 @@ pub fn getVersion() builtin.Version {
 /// binary in numerical format.
 pub fn getVersionString() [:0]const u8 {
     const string = c.glfwGetVersionString();
-    return mem.toSliceConst(u8, string);
+    return mem.spanZ(@as([*:0]const u8, string));
 }
 
 /// This is the function pointer type for error callbacks. An error
@@ -222,7 +222,7 @@ fn glfwErrorCallback(code: c_int, description: [*c]const u8) callconv(.C) void {
             else => std.debug.panic("unknown code: {}\n", .{ code }),
         };
 
-        callback(err, mem.toSliceConst(u8, description));
+        callback(err, mem.spanZ(@as([*:0]const u8, description)));
     }
 }
 
