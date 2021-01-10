@@ -5,7 +5,7 @@ pub fn createManifest(b: *api.ManifestBuilder) void {
         .name = "glfw",
         .entry_point = "glfw.zig",
         .links = &[_][]const u8{
-            "C",
+            "c",
             "glfw",
         },
     });
