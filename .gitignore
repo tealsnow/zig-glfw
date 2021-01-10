@@ -10,3 +10,5 @@ build-*/
 docgen_tmp/
 
 # End of https://www.gitignore.io/api/zig
+
+/.zpkm
