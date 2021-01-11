@@ -3,7 +3,7 @@ const mem = std.mem;
 
 const builtin = @import("builtin");
 
-const c = @import("./c.zig");
+pub const c = @import("./c.zig");
 pub usingnamespace @import("./monitor.zig");
 pub usingnamespace @import("./window.zig");
 
@@ -376,4 +376,8 @@ pub fn postEmptyEvent() !void {
         Error.PlatformError => return err,
         else => unreachable,
     };
+}
+
+pub fn getTime() f64 {
+    return c.glfwGetTime();
 }
